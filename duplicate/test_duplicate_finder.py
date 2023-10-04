@@ -1,0 +1,45 @@
+import unittest
+import pandas as pd
+import os
+from duplicate_finder import find_duplicates
+
+class TestFindDuplicates(unittest.TestCase):
+    def setUp(self):
+        # Create a temporary directory to store test files
+        self.test_dir = "test_data"
+        os.makedirs(self.test_dir, exist_ok=True)
+        
+        # Create test input data
+        data = {
+            "ID": [1, 2, 3, 4, 5],
+            "Name": ["John", "Jane", "John", "John", "Jane"],
+            "Age": [30, 25, 30, 30, 26],
+            "Address": ["123 Main St", "456 Elm St", "789 Pine St", "123 Main St", "456 Elm St"],
+            "Phone": ["555-1234", "555-5678", "555-1234", "555-1234", "555-5678"]
+        }
+        self.input_df = pd.DataFrame(data)
+        self.input_file = os.path.join(self.test_dir, "test_input_data.csv")
+        self.input_df.to_csv(self.input_file, index=False)
+
+    def tearDown(self):
+        # Remove the temporary test directory and files
+        import shutil
+        shutil.rmtree(self.test_dir)
+
+    def test_find_duplicates(self):
+        output_file = os.path.join(self.test_dir, "test_output_data.csv")
+        find_duplicates(self.input_file, output_file)
+        
+        # Read the output CSV file into a Pandas dataframe
+        output_df = pd.read_csv(output_file)
+        
+        # Assert that the output dataframe has the correct columns
+        self.assertTrue("Score" in output_df.columns)
+        self.assertTrue("GroupID" in output_df.columns)
+        
+        # Assert that the Score and GroupID columns have the correct values
+        self.assertEqual(output_df.iloc[0]["Score"], 75)
+        self.assertEqual(output_df.iloc[0]["GroupID"], 1)
+
+if __name__ == "__main__":
+    unittest.main()
